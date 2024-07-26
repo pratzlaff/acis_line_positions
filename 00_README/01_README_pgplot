@@ -1,0 +1,43 @@
+#! /bin/bash
+
+mkdir -p build
+cd build
+
+#
+# these commands were run on han-v
+#
+
+# error log is at https://icxc.cfa.harvard.edu/cgi-bin/webdev/show_error_log.cgi
+# to see web server's versio of Perl, http://cxc.harvard.edu/cgi-gen/LETG/perl_version.cgi
+
+# web server is running Perl 5.26.3, and this is currently the
+# same as han-v /usr/bin/perl
+
+rm -rf pgplot5.2.tar.gz pgplot-5.22 pgplot-5.22-src
+wget ftp://ftp.astro.caltech.edu/pub/pgplot/pgplot5.2.tar.gz
+
+tar zxvf pgplot5.2.tar.gz
+mv pgplot pgplot-5.22-src
+mkdir pgplot-5.22
+cp -a pgplot-5.22-src/drivers.list pgplot-5.22
+
+# uncomment gif, png, ps, xwindow, xserve drivers
+cd pgplot-5.22
+perl -i.bak -ple 's/^! (GI|PN|PS|XW)DRIV/$1DRIV/' drivers.list
+
+# ./pgplot-5.22-src/drivers/pndriv.c:36 to include <libpng15/png.h>
+#perl -i.bak -ple 's!png\.h!libpng15/png.h!' ../pgplot-5.22-src/drivers/pndriv.c
+perl -i.bak -ple 's/png_ptr->jmpbuf/png_jmpbuf(png_ptr)/' ../pgplot-5.22-src/drivers/pndriv.c
+
+../pgplot-5.22-src/makemake  ../pgplot-5.22-src linux g77_gcc
+
+# makefile:882 has pndriv.o dependencies, comment those out
+# Also, change FCOMPL=gfortran at the beginning of the file,
+# # and explicitly link with version 1.5
+#perl -i.bak -ple 's/-lpng/-lpng15/' makefile
+perl -i.bak -ple s/FCOMPL=g77/FCOMPL=gfortran/ makefile
+perl -i.bak -nle 'print unless /^pndriv\.o : \.\/png.h/' makefile
+
+make
+make cpg
+make clean

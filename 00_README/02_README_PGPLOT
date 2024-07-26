@@ -1,0 +1,61 @@
+#! /bin/bash
+
+mkdir -p build
+cd build
+
+# Now onto the Perl PGPLOT module,
+# these commands were run on han-v
+#
+
+#
+# libpng16 exists on, e.g., 131.142.52.30,
+# but not 131.142.52.29
+#
+# The version of Perl on 131.142.52.30 currently matches that
+# on the web servers.
+#
+locate libpng16 1>/dev/null || {
+  echo system does not have libpng16, exiting 1>&2
+  exit 1
+}
+
+mkdir -p perlmods
+export PERL5LIB=../perlmods
+export PGPLOT_DIR=../pgplot-5.22 
+export LD_LIBRARY_PATH=..:../pgplot-5.22 
+
+rm -rf ExtUtils-F77-1.26*
+wget https://cpan.metacpan.org/authors/id/E/ET/ETJ/ExtUtils-F77-1.26.tar.gz
+tar zxvf ExtUtils-F77-1.26.tar.gz
+cd ExtUtils-F77-1.26
+/usr/bin/perl Makefile.PL LIB=$PERL5LIB PREFIX=$PERL5LIB
+make install
+
+cd ..
+
+rm -rf PGPLOT-2.22*
+wget http://search.cpan.org/CPAN/authors/id/K/KG/KGB/PGPLOT-2.22.tar.gz
+tar zxvf PGPLOT-2.22.tar.gz
+cd PGPLOT-2.22
+
+# comment out EXDIR in Makefile.PL:43
+##perl -i.bak -nle 'print unless /^\s+EXDIR/' Makefile.PL
+#perl -i.bak -ple '/EXDIR =>/ && s!usr/local/lib!lib64!' Makefile.PL
+
+/usr/bin/perl Makefile.PL LIB=$PERL5LIB PREFIX=$PERL5LIB
+
+# edit Makefile:294, to build with the static libpgplot
+# han8-v system has libgfortran, libquadmath, libpng15, but the
+# web servers may not, so copy them to working directory and
+# make sure PGPLOT isn't hardwired to find them in the system
+# directories
+cp -a /lib64/libpng16.so.16* ../../lib
+cp -a /lib64/libgfortran.so.5* ../../lib
+cp -a /usr/lib64/libquadmath* ../../lib
+perl -i.bak -ple '/LD_RUN_PATH/ && s!:/lib64:/usr/lib!!' Makefile
+
+#perl -i.bak -ple '/^(EXTRA|LDLOAD)LIBS/ && do { s/-lcpgplot//; s/-lpgplot//; $_.=" ../pgplot-5.22/libcpgplot.a ../pgplot-5.22/libpgplot.a"}' Makefile
+
+make
+make test
+make install
