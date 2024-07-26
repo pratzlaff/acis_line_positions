@@ -1,0 +1,32 @@
+prefix=`pwd`/../.local
+export C_INCLUDE_PATH="$prefix/include"
+export LD_LIBRARY_PATH="$prefix/lib"
+export PKG_CONFIG_PATH="$prefix/lib/pkgconfig"
+
+rm -rf pixman*
+wget https://www.cairographics.org/releases/pixman-0.40.0.tar.gz
+tar xvf pixman-0.40.0.tar.gz 
+cd pixman-0.40.0
+./configure --prefix="$prefix"
+make install
+cd ..
+
+rm -rf cairo*
+
+wget https://www.cairographics.org/releases/cairo-1.16.0.tar.xz
+tar xvf cairo-1.16.0.tar.xz 
+cd cairo-1.16.0
+./configure --prefix="$prefix"
+make install
+cd ..
+
+rm -rf giza*
+wget https://downloads.sourceforge.net/project/giza/v1.3.2/giza-v1.3.2.tar.gz
+tar zxvf giza-v1.3.2.tar.gz
+cd giza
+./configure --prefix="$prefix"
+make install
+cd ..
+
+#wget https://www.cairographics.org/releases/cairomm-1.16.1.tar.xz
+

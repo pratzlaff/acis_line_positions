@@ -1,0 +1,10 @@
+fpc_xhi=511
+ssd_xhi=4095
+fpc_rhi=511
+fpc_xlo=0
+ssd_rhi=4095
+ssd_xlo=0
+fpc_rlo=0
+ssd_rlo=0
+runid=114160
+iterations=
