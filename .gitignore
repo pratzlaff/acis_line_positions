@@ -1,6 +1,5 @@
 *~
-.build/
+.build/[a-z]*
 .local/
-build/
+build*/
 lib/
-old/

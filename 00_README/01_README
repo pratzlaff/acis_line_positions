@@ -1,0 +1,56 @@
+#! /bin/bash
+
+set -eo pipefail
+
+build=$(pwd)/build.RL_10.1
+
+rm -rf "$build"
+mkdir "$build"
+
+cd pgplot-autotool
+./configure --prefix="$build"
+make
+make install
+cd -
+
+cd "$build"
+
+export PERL5LIB="$build"/lib/perl5
+
+rm -rf CGI-4.72*
+wget https://cpan.metacpan.org/authors/id/L/LE/LEEJO/CGI-4.72.tar.gz
+tar zxvf CGI-4.72.tar.gz
+cd CGI-4.72
+/usr/bin/perl Makefile.PL INSTALL_BASE="$build"
+make install
+cd -
+
+rm -rf ExtUtils-F77-1.26*
+wget https://cpan.metacpan.org/authors/id/E/ET/ETJ/ExtUtils-F77-1.26.tar.gz
+tar zxvf ExtUtils-F77-1.26.tar.gz
+cd ExtUtils-F77-1.26
+/usr/bin/perl Makefile.PL INSTALL_BASE="$build"
+make install
+cd -
+
+rm -rf Devel-CheckLib-1.16
+wget https://cpan.metacpan.org/authors/id/M/MA/MATTN/Devel-CheckLib-1.16.tar.gz
+tar zxvf Devel-CheckLib-1.16.tar.gz
+cd Devel-CheckLib-1.16
+/usr/bin/perl Makefile.PL INSTALL_BASE="$build"
+make install
+cd -
+
+rm -rf PGPLOT-2.35*
+wget https://cpan.metacpan.org/authors/id/E/ET/ETJ/PGPLOT-2.35.tar.gz
+tar zxvf PGPLOT-2.35.tar.gz
+cd PGPLOT-2.35
+env \
+  LD_LIBRARY_PATH="$build/lib" \
+  perl Makefile.PL \
+    LDIR="$build/lib" \
+    IDIR="$build/include/pgplot" \
+    INSTALL_BASE="$build"
+LD_RUN_PATH="$build/lib" make install
+cd -
+
